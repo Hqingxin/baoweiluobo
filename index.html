@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="JS/create.js"></script>
+    <script src="JS/bg.js"></script>
+    <script src="JS/topMenu.js"></script>
+    <script src="JS/monsters.js"></script>
+    <script src="JS/pos.js"></script>
+    <script src="JS/tower.js"></script>
+    <script src="JS/bullet.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            font-size: 24px;
+            color: white;
+        }
+
+        #loading {
+            position: absolute;
+            width: 800px;
+            height: 500px;
+            left: calc(50% - 400px);
+            top: 0;
+        }
+
+        #loading img {
+            width: 100%;
+            height: 100%;
+
+        }
+
+        #can {
+            margin: 0 auto;
+            display: block;
+        }
+
+        #loading2 {
+            display: none;
+        }
+
+        #victory {
+            text-align: center;
+            position: absolute;
+            width: 800px;
+            height: 500px;
+            left: calc(50% - 400px);
+            top: 0;
+            background: rgba(0, 0, 0, 0.6);
+            display: none;
+        }
+
+        #defeate {
+            text-align: center;
+            position: absolute;
+            width: 800px;
+            height: 500px;
+            left: calc(50% - 400px);
+            top: 0;
+            background: rgba(0, 0, 0, 0.6);
+            display: none;
+        }
+
+        .victory-bg {
+            width: 500px;
+            position: absolute;
+            left: calc(50% - 250px);
+            top: 100px;
+        }
+
+        .defeate-bg {
+            width: 500px;
+            position: absolute;
+            left: calc(50% - 237px);
+            top: 90px;
+        }
+
+        .end-luobo {
+            position: absolute;
+            left: calc(50% - 45px);
+            top: 80px;
+            width: 80px;
+            z-index: 999;
+        }
+
+        .end-wenzi {
+            position: absolute;
+            left: calc(50% - 180px);
+            top: 215px;
+            width: 360px;
+            z-index: 999;
+        }
+
+        .killNumOne {
+            position: absolute;
+            top: 215px;
+            left: 373px;
+        }
+
+        .killNumTwo {
+            position: absolute;
+            top: 215px;
+            left: 405px;
+        }
+
+        .maxNum {
+            position: absolute;
+            top: 215px;
+            left: 455px;
+        }
+
+        .startAgain {
+            width: 200px;
+            height: 50px;
+            position: absolute;
+            top: 300px;
+            left: calc(50% - 100px)
+        }
+    </style>
+</head>
+
+<body>
+    <div id="loading">
+        <img src="imgs/Loading.png" alt="" id="loading1">
+        <img src="imgs/Loading2.png" alt="" id="loading2">
+    </div>
+    <div id="victory">
+        <img src="imgs/victory.png" alt="" class="victory-bg">
+        <img src="imgs/jinluobo.png" alt="" class="end-luobo">
+        <img src="imgs/wenzi.png" alt="" class="end-wenzi">
+        <span class="killNumOne">9</span>
+        <span class="killNumTwo">9</span>
+        <span class="maxNum">99</span>
+        <img src="imgs/startagain.png" alt="" class="startAgain">
+    </div>
+    <div id="defeate">
+        <img src="imgs/defeate.png" alt="" class="defeate-bg">
+        <img src="imgs/wenzi.png" alt="" class="end-wenzi">
+        <span class="killNumOne">9</span>
+        <span class="killNumTwo">9</span>
+        <span class="maxNum">99</span>
+        <img src="imgs/startagain.png" alt="" class="startAgain">
+    </div>
+    <canvas id="can" width="800px" height="500px"></canvas>
+    <script>
+        var loading1 = document.getElementById('loading1')
+        var loading2 = document.getElementById('loading2')
+        var victory = document.getElementById('victory')
+        var defeate = document.getElementById('defeate')
+        var killNumOne = document.getElementsByClassName('killNumOne');
+        var killNumTwo = document.getElementsByClassName('killNumTwo');
+        var maxNum = document.getElementsByClassName('maxNum');
+        var startAgain = document.getElementsByClassName('startAgain');
+        for (var i = 0; i < startAgain.length; i++) {
+            startAgain[i].onclick = function () {
+                location.href = location.href;
+            }
+        }
+        setTimeout(function () {
+            loading1.style.display = 'none';
+            loading2.style.display = 'block';
+        }, 3000)
+        setTimeout(function () {
+            loading2.style.display = 'none';
+            StartFlag = true;
+            Ani();
+        }, 6000)
+        var can = document.getElementById('can');
+        var ctx = can.getContext('2d');
+        //游戏开始的开关
+        var StartFlag = false;
+        //背景图片
+        var bg = BgSprite('imgs/bg1.png', 'bg');
+        //路线图片
+        var path = BgSprite('imgs/bg2.png', 'path');
+        //出生位置的图片
+        var start = BgSprite('imgs/Object01.png', 'start');
+        //终点萝卜图片
+        var end = BgSprite('imgs/luobo.png', 'end');
+        //萝卜血量图片
+        var luoboHp = BgSprite('imgs/Items02.png', 'luoboHp')
+        //背景云的图片
+        var cloud1 = BgSprite('imgs/Object01.png', 'cloud')
+        var cloud2 = BgSprite('imgs/Object01.png', 'cloud')
+        cloud2.x = 485;
+        var cloud3 = BgSprite('imgs/Object01.png', 'smallCloud')
+        var cloud4 = BgSprite('imgs/Object01.png', 'smallCloud')
+        cloud4.x = 610;
+        var balloon = BgSprite('imgs/Object01.png', 'balloon')
+        var tree = BgSprite('imgs/Object01.png', 'tree')
+        //顶部菜单背景图片
+        var topMenuBg = TopMenuSprite('imgs/Items02.png', 'bg');
+        //顶部菜单绿瓶子图标
+        var topMenuBottle = TopMenuSprite('imgs/TBottle.png', 'bottle');
+        //顶部菜单便便图标
+        var topMenuShit = TopMenuSprite('imgs/TShit.png', 'shit');
+        //顶部菜单移除图标
+        var topMenuRemove = TopMenuSprite('imgs/Items02.png', 'remove');
+        //初始金币数量
+        var gold = 450;
+        //生成怪物
+        //最后一次生成的时间
+        var lastMonstersCreateTime = 0;
+        //生成怪物的时间间隔
+        var MonstersCreateIntervalTime = 100;
+        //所有怪物的数组
+        var MonstersArr = [];
+        //所有怪物的类型的数组
+        var MonstersTypeArr = ['zhangyu', 'haixing', 'shuimu', 'bianfu'];
+        //已经生成的怪物数量
+        var MonstersNum = 0;
+        //最大生成怪物数量
+        var maxMonstersNum = 100;
+        //初始怪物血量倍率
+        var hpMultiple = 0;
+        // var Monsters = MonstersSprite('imgs/Monsters01.png', 'zhangyu')
+        //所有炮台的数组
+        var towerArr = [];
+        var towerArrInit = [];
+        var towerArrinitinit = [];
+        //所有可移除的炮台数组
+        var towerArrRemove = [];
+        //所有可放置炮台的位置
+        var TowerPosArrInit = [];
+        //所有炮台的升级图标
+        var TowerUpgradeArr = [];
+        //所有子弹的数组
+        var bulletArr = [];
+        //当前点击的类型
+        var clickType = '';
+        document.onclick = function (e) {
+            if (StartFlag == false) {
+                return
+            }
+            var x1 = e.pageX - can.offsetLeft;
+            var y1 = e.pageY - can.offsetTop;
+            towerArrinitinit = [];
+            towerArrRemove = [];
+            if (clickType == 'bottle') {
+                for (var i in TowerPosArr) {
+                    if (isInPath(x1, y1, TowerPosArr[i].x, TowerPosArr[i].y, 50, 50) && TowerPosArr[i].able) {
+                        var bottleDizuo = Tower('imgs/TBottle.png', 'bottleDizuo');
+                        bottleDizuo.x = TowerPosArr[i].x;
+                        bottleDizuo.y = TowerPosArr[i].y;
+                        var bottle = Tower('imgs/TBottle.png', 'bottle')
+                        bottle.x = TowerPosArr[i].x + ((50 - bottle.w) / 2);
+                        bottle.y = TowerPosArr[i].y + ((50 - bottle.h) / 2);
+                        towerArr.push(bottleDizuo, bottle);
+                        towerArrInit.push(bottle);
+                        gold -= 100;
+                        TowerPosArr[i].able = false;
+                    }
+                }
+                clickType = '';
+                TowerPosArrInit = [];
+
+            }
+            if (clickType == 'shit') {
+                for (var i in TowerPosArr) {
+                    if (isInPath(x1, y1, TowerPosArr[i].x, TowerPosArr[i].y, 50, 50) && TowerPosArr[i].able) {
+                        var shitDizuo = Tower('imgs/TShit.png', 'shitDizuo');
+                        shitDizuo.x = TowerPosArr[i].x;
+                        shitDizuo.y = TowerPosArr[i].y;
+                        shitDizuo.x = TowerPosArr[i].x + ((50 - shitDizuo.w) / 2);
+                        shitDizuo.y = TowerPosArr[i].y + ((50 - shitDizuo.h) / 2) + 10;
+                        var shit = Tower('imgs/TShit.png', 'shit')
+                        shit.x = TowerPosArr[i].x + ((50 - shit.w) / 2);
+                        shit.y = TowerPosArr[i].y + ((50 - shit.h) / 2);
+                        towerArr.push(shitDizuo, shit);
+                        towerArrInit.push(shit)
+                        gold -= 120;
+                        TowerPosArr[i].able = false;
+                    }
+                }
+                clickType = '';
+                TowerPosArrInit = [];
+
+            }
+
+            if (clickType == 'remove') {
+                for (var i in towerArr) {
+                    if (isInPath(x1, y1, towerArr[i].x, towerArr[i].y, 50, 50)) {
+                        towerArr[i].visible = false;
+                        gold += 40;
+                    }
+                }
+                for (var i in TowerPosArr) {
+                    if (isInPath(x1, y1, TowerPosArr[i].x, TowerPosArr[i].y, 50, 50) && TowerPosArr[i].able ==
+                        false) {
+                        TowerPosArr[i].able = true;
+                    }
+                }
+                clickType = '';
+                TowerPosArrInit = [];
+                return;
+            }
+            if (isInPath(x1, y1, topMenuBottle.x, topMenuBottle.y, topMenuBottle.w, topMenuBottle.h) &&
+                gold >= 100) {
+                clickType = 'bottle';
+                TowerPosArrInit = TowerPosArr.concat();
+
+            }
+            if (isInPath(x1, y1, topMenuShit.x, topMenuShit.y, topMenuShit.w, topMenuShit.h) &&
+                gold >= 120) {
+                clickType = 'shit';
+                TowerPosArrInit = TowerPosArr.concat();
+
+            }
+            if (isInPath(x1, y1, topMenuRemove.x, topMenuRemove.y, topMenuRemove.w, topMenuRemove.h)) {
+                clickType = 'remove';
+                towerArrRemove = towerArrInit.concat();
+            }
+            for (var i in towerArrInit) {
+                if (isInPath(x1, y1, towerArrInit[i].x, towerArrInit[i].y, 50, 50)) {
+                    towerArrinitinit.push({
+                        x: getCenterPos(towerArrInit[i].x, towerArrInit[i].y, towerArrInit[i].w,
+                                towerArrInit[i].h)
+                            .x,
+                        y: getCenterPos(towerArrInit[i].x, towerArrInit[i].y, towerArrInit[i].w,
+                                towerArrInit[i].h)
+                            .y,
+                        r: towerArrInit[i]
+                            .r,
+                    })
+                }
+            }
+            for (var i in TowerUpgradeArr) {
+                if (isInPath(x1, y1, TowerUpgradeArr[i].x, TowerUpgradeArr[i].y, 30, 40)) {
+                    if (TowerUpgradeArr[i].upgradeAble) {
+                        towerArrInit[i].atk += 50;
+                        towerArrInit[i].grade++;
+                        gold -= towerArrInit[i].upgradeGold;
+                    }
+                }
+            }
+
+        }
+
+        var time = 0;
+        var start_pos_init = [10, 40];
+
+        function Ani() {
+            //表格宽高
+            var boxWH = 50;
+            var row = 7;
+            var col = 12;
+            var ter_wid = 17;
+            var start_pos = start_pos_init.concat();
+            //游戏失败
+            if (end.hp == 0) {
+                cancelAnimationFrame(requestAnimation);
+                var killNum = String(MonstersNum - MonstersArr.length);
+                if (killNum.length == 1) {
+                    killNumOne[1].innerHTML = 0;
+                    killNumTwo[1].innerHTML = killNum.charAt(0);
+                } else {
+                    killNumOne[1].innerHTML = killNum.charAt(0);
+                    killNumTwo[1].innerHTML = killNum.charAt(1);
+                }
+                defeate.style.display = 'block';
+                return;
+            }
+            //通关
+            if (MonstersNum == maxMonstersNum && MonstersArr.length == 0) {
+                cancelAnimationFrame(requestAnimation);
+                victory.style.display = 'block';
+                return;
+            }
+
+            ctx.clearRect(0, 0, can.width, can.height);
+            //背景的绘制
+            bg.paint(ctx);
+            path.paint(ctx);
+            start.paint(ctx);
+            end.paint(ctx);
+            end.update(time);
+            luoboHp.paint(ctx);
+            luoboHp.update(time);
+            cloud1.paint(ctx);
+            cloud2.paint(ctx);
+            cloud3.paint(ctx);
+            cloud4.paint(ctx);
+            balloon.paint(ctx);
+            tree.paint(ctx);
+            //顶部菜单的绘制
+            topMenuBg.paint(ctx);
+            //顶部菜单绿瓶子的绘制
+            topMenuBottle.paint(ctx);
+            topMenuBottle.update(time);
+            //顶部菜单便便的绘制
+            topMenuShit.paint(ctx);
+            topMenuShit.update(time);
+            //顶部移除的绘制
+            topMenuRemove.paint(ctx);
+            // // //怪物的生成
+            if (lastMonstersCreateTime + MonstersCreateIntervalTime == time) {
+                if (MonstersNum < maxMonstersNum) {
+                    var index = gR(0, MonstersTypeArr.length - 1);
+                    var Monster = MonstersSprite('imgs/Monsters01.png', MonstersTypeArr[index], time);
+                    MonstersArr.push(Monster);
+                    MonstersNum++;
+                    lastMonstersCreateTime = time;
+                }
+            }
+            //怪物的绘制
+            for (var i in MonstersArr) {
+                MonstersArr[i].paint(ctx);
+                MonstersArr[i].update(time);
+                //怪物血量的绘制
+                drawRect(MonstersArr[i].x - 1, MonstersArr[i].y - 21, 62, 12)
+                ctx.beginPath();
+                ctx.rect(MonstersArr[i].x, MonstersArr[i].y - 20, 60 * MonstersArr[i].hp /
+                    MonstersArr[i].maxhp, 10);
+                ctx.fillStyle = 'green';
+                ctx.closePath();
+                ctx.fill();
+            }
+            //删除不可见的怪物
+            for (var i in MonstersArr) {
+                if (MonstersArr[i].visible == false) {
+                    MonstersArr.splice(i, 1);
+                }
+            }
+            //炮台的绘制
+            for (var i in towerArr) {
+                towerArr[i].paint(ctx);
+                towerArr[i].update(time);
+            }
+            //炮台是否可升级
+            TowerUpgradeArr = [];
+            for (var i in towerArrInit) {
+                var TowerUpgrade = Tower('imgs/Items02.png', 'upgrade');
+                TowerUpgrade.x = towerArrInit[i].x;
+                TowerUpgrade.y = towerArrInit[i].y - 40;
+                if (gold >= towerArrInit[i].upgradeGold) {
+                    towerArrInit[i].upgradeAble = true;
+                    TowerUpgrade.upgradeAble = true;
+                }
+                TowerUpgradeArr.push(TowerUpgrade);
+                //绘制炮台等级
+                ctx.beginPath();
+                ctx.font = "oblique 24px '微软雅黑'";
+                ctx.fillStyle = 'white';
+                ctx.fillText(towerArrInit[i].grade, towerArrInit[i].x + 10, towerArrInit[i].y)
+                ctx.closePath();
+                ctx.stroke();
+            }
+            //绘制炮台升级图标
+            for (var i in TowerUpgradeArr) {
+                if (TowerUpgradeArr[i].upgradeAble) {
+                    TowerUpgradeArr[i].paint(ctx);
+                }
+            }
+            //删除不可见的炮台
+            for (var i in towerArr) {
+                if (towerArr[i].visible == false) {
+                    towerArr.splice(i, 1);
+                    if (i % 2 == 0) {
+                        towerArrInit.splice(i / 2, 1)
+                    }
+                }
+            }
+            //提示区域的绘制
+            for (var i in TowerPosArrInit) {
+                if (TowerPosArrInit[i].able) {
+                    drawRect(TowerPosArrInit[i].x, TowerPosArrInit[i].y, 50, 50)
+                }
+            }
+            // for (var i in towerArrRemove) {
+            //     drawRect(towerArrRemove[i].x - 10, towerArrRemove[i].y - 5, 50, 50)
+            // }
+            //炮台攻击范围的绘制
+            for (var i in towerArrinitinit) {
+                ctx.beginPath();
+                ctx.arc(towerArrinitinit[i].x, towerArrinitinit[i].y, towerArrinitinit[i].r, 0, 2 * Math.PI,
+                    false);
+                ctx.fillStyle = 'rgba(0,0,0,.2)';
+                ctx.fill();
+                ctx.closePath();
+                ctx.stroke();
+            }
+            //子弹的绘制
+            for (var i in bulletArr) {
+                bulletArr[i].paint(ctx);
+                bulletArr[i].update(time);
+            }
+            for (var i in bulletArr) {
+                if (bulletArr[i].visible == false) {
+                    bulletArr.splice(i, 1);
+                }
+            }
+            //画出表格
+            // for (var i = 0; i < row; i++) {
+            //     start_pos[0] = start_pos_init[0];
+            //     for (var j = 0; j < col; j++) {
+            //         ctx.beginPath();
+            //         ctx.strokeRect(start_pos[0], start_pos[1], boxWH, boxWH);
+            //         ctx.closePath();
+            //         start_pos[0] = boxWH + ter_wid + start_pos[0];
+
+            //     }
+            //     start_pos[1] = boxWH + ter_wid + start_pos[1];
+            // }
+
+
+
+            ctx.fillStyle = 'white';
+            ctx.font = "oblique 30px '微软雅黑'";
+            ctx.textBaseline = "bottom";
+            ctx.fillText(gold, 100, 50, 100);
+            time++;
+            var requestAnimation = window.requestAnimationFrame(Ani);
+        }
+        // Ani();
+        //获取随机数
+        function gR(min, max) {
+            return Math.floor(Math.random() * (max - min + 1) + min)
+        }
+        //获取中心坐标
+        function getCenterPos(x, y, w, h) {
+            var pos = {
+                x: x + w / 2,
+                y: y + h / 2
+            };
+            return pos;
+        }
+        //判断是否在区间内
+        function isInPath(x1, y1, x2, y2, w, h) {
+            if (x1 >= x2 && x1 <= x2 + w && y1 > y2 && y1 < y2 + h) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+        //画矩形
+        function drawRect(x, y, w, h) {
+            ctx.beginPath();
+            ctx.strokeRect(x, y, w, h);
+            ctx.closePath();
+        }
+        //计算两点的弧度
+        function calculateDeg(x1, y1, x2, y2) {
+            var deg = Math.atan2(y2 - y1, x2 - x1)
+            deg += Math.PI / 2
+            return deg
+        }
+        //碰撞检测
+        function duang(ele1, ele2) {
+            var flag = false;
+            var r = ele1.r || 0;
+            var ab_juli = r + (ele2.w / 2 + ele2.h / 2) / 2;
+            var abx = Math.abs(getCenterPos(ele1.x, ele1.y, ele1.w, ele1.h).x - getCenterPos(ele2.x, ele2.y, ele2.w,
+                ele2.h).x) * Math.abs(getCenterPos(ele1.x,
+                ele1.y, ele1.w, ele1.h).x - getCenterPos(ele2.x, ele2.y, ele2.w, ele2.h).x)
+            var aby = Math.abs(getCenterPos(ele1.x, ele1.y, ele1.w, ele1.h).y - getCenterPos(ele2.x, ele2.y, ele2.w,
+                ele2.h).y) * Math.abs(getCenterPos(ele1.x,
+                ele1.y, ele1.w, ele1.h).y - getCenterPos(ele2.x, ele2.y, ele2.w, ele2.h).y)
+            if (Math.sqrt(abx + aby) <= ab_juli) {
+                flag = true;
+            }
+            return flag;
+        }
+    </script>
+</body>
+
+</html>
